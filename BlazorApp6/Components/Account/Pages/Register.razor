@@ -1,6 +1,9 @@
 ﻿@page "/Account/Register"
+@layout MainAuthorizeLayout
 
+@using BlazorApp6.Components.Layout
 @using System.ComponentModel.DataAnnotations
+@using System.Net.Mime
 @using System.Text
 @using System.Text.Encodings.Web
 @using BlazorApp6.Data
@@ -15,18 +18,38 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Register</PageTitle>
+<PageTitle>Регистрация</PageTitle>
 
-<h1>Register</h1>
 
-<div class="row">
-    <div class="col-md-4">
-        <StatusMessage Message="@Message"/>
-        <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
-            <DataAnnotationsValidator/>
-            <h2>Create a new account.</h2>
-            <hr/>
-            <ValidationSummary class="text-danger" role="alert"/>
+<EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
+    <DataAnnotationsValidator/>
+    <div class="border rounded-3 p-3">
+    <div class="row ">
+        <h3 class="p-3">Регистрация</h3>
+        <div class="col border rounded-3 m-3 p-3">
+            <div class=" mb-3">
+                <label for="lastName" class="form-label">Фамилия</label>
+                <input name="lastName" type="text" class="form-control" id="lastName" placeholder="Иванов" required>
+            </div>
+            <div class=" mb-3">
+                <label for="name" class="form-label">Имя</label>
+                <input type="text" name="name" class="form-control" id="name" placeholder="Иван" required>
+            </div>
+
+            <div class=" mb-3">
+                <label for="middleName" class="form-label">Отчество</label>
+                <input type="text" name="middleName" class="form-control" id="middleName" placeholder="Иванович" required>
+            </div>
+            <div class="mb-3">
+                <label for="telephone" class="form-label">Телефон</label>
+                <input type="text" name="telephone" class="form-control" id="telephone" required>
+            </div>
+            <div class="mb-3">
+                <label for="date" class="form-label">Дата рождения</label>
+                <input type="date" name="date" class="form-control" id="date" required>
+            </div>
+        </div>
+        <div class="col border rounded-3 m-3 p-3">
             <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com"/>
                 <label for="email">Email</label>
@@ -34,25 +57,38 @@
             </div>
             <div class="form-floating mb-3">
                 <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password"/>
-                <label for="password">Password</label>
+                <label for="password">Пароль</label>
                 <ValidationMessage For="() => Input.Password" class="text-danger"/>
             </div>
             <div class="form-floating mb-3">
                 <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password"/>
-                <label for="confirm-password">Confirm Password</label>
+                <label for="confirm-password">Повтор пароля</label>
                 <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger"/>
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </EditForm>
+        </div>
+    <div class="col border rounded-3 m-3 p-3">
+        <div class="mb-3">
+            <label for="city" class="form-label">
+                Город
+            </label>
+            <input type="text" class="form-control" id="city" required>
+        </div>
+
+        
+        <div class="mb-3">
+            <label for="school" class="form-label">Школа</label>
+            <input type="text" class="form-control" id="school" required>
+        </div>
+        <div class="mb-3">
+            <label for="сlass" class="form-label">Класс</label>
+            <input type="text" class="form-control" id="сlass" required>
+        </div>
     </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr/>
-            <ExternalLoginPicker/>
-        </section>
-    </div>
+        </div>
+        <button type="submit" class="w-50 btn btn-lg btn-primary">Регистрация</button>
 </div>
+
+</EditForm>
 
 @code {
     private IEnumerable<IdentityError>? identityErrors;
@@ -65,7 +101,6 @@
 
     public async Task RegisterUser(EditContext editContext) {
         var user = CreateUser();
-
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
         await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
@@ -116,21 +151,22 @@
     }
 
     private sealed class InputModel {
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [EmailAddress(ErrorMessage = "Почта не является действительной.")]
         [Display(Name = "Email")]
         public string Email { get; set; } = "";
 
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [StringLength(100, ErrorMessage = "Длина {0} должна быть не менее {2} и не более {1} символов.", MinimumLength = 8)]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
         public string Password { get; set; } = "";
 
+        [Required(ErrorMessage = "Поле является обязательным.")]
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        [Compare("Password", ErrorMessage = "Пароли не совпадают.")]
         public string ConfirmPassword { get; set; } = "";
     }
 
-}
+} 

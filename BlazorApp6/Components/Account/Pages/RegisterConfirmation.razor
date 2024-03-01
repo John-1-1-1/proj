@@ -1,5 +1,7 @@
 ﻿@page "/Account/RegisterConfirmation"
+@layout MainAuthorizeLayout
 
+@using BlazorApp6.Components.Layout
 @using System.Text
 @using BlazorApp6.Data
 @using BlazorApp7.Components.Account
@@ -11,21 +13,21 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Register confirmation</PageTitle>
+<PageTitle>Подтверждение регистрации</PageTitle>
 
-<h1>Register confirmation</h1>
 
-<StatusMessage Message="@statusMessage"/>
+<div class="row">
+    <div class="col border rounded-3 p-3">
+        <h1>Подтверждение регистрации</h1>
 
-@if (emailConfirmationLink is not null) {
-    <p>
-        This app does not currently have a real email sender registered, see <a href="https://aka.ms/aspaccountconf">these docs</a> for how to configure a real email sender.
-        Normally this would be emailed: <a href="@emailConfirmationLink">Click here to confirm your account</a>
-    </p>
-}
-else {
-    <p>Please check your email to confirm your account.</p>
-}
+        <StatusMessage Message="@statusMessage"/>
+
+        
+<p>Пожалуйста, проверьте свою электронную почту, чтобы подтвердить свою учетную запись.</p>
+    </div>
+</div>
+
+
 
 @code {
     private string? emailConfirmationLink;
