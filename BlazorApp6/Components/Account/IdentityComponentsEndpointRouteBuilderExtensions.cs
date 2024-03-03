@@ -23,7 +23,7 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions {
             SignInManager<ApplicationUser> signInManager,
             [FromForm] string returnUrl) => {
             await signInManager.SignOutAsync();
-            return TypedResults.LocalRedirect($"~/{returnUrl}");
+            return TypedResults.LocalRedirect($"~/");
         });
 
         return accountGroup;

@@ -17,11 +17,12 @@
     <div class="col border rounded-3 p-3">
         <h1>Подтверждение почты</h1>
         <StatusMessage Message="@statusMessage"/>
+        <a href="Account/">На главную</a>
     </div>
 </div>
 
 @code {
-    private string? statusMessage;
+    private string? statusMessage = "Почта подтверждена";
 
     [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
 

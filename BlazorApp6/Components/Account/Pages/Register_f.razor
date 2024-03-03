@@ -1,4 +1,4 @@
-﻿@page "/Account/Register"
+﻿@page "/Account/RegF"
 @layout MainAuthorizeLayout
 @rendermode InteractiveServer
 
@@ -6,9 +6,9 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Net
 @using System.Net.Mime
+@using System.Reflection.Metadata
 @using System.Text
 @using System.Text.Encodings.Web
-@using BlazorApp6.Components.Tables
 @using BlazorApp6.Components.Validators
 @using BlazorApp6.Data
 @using Microsoft.AspNetCore.Identity
@@ -22,11 +22,8 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
-@inject ApplicationDbContext ApplicationDbContext 
 
 <PageTitle>Регистрация</PageTitle>
-
-
 
 <EditForm Model="Input" OnValidSubmit="RegisterUser" FormName="register">
     <DataAnnotationsValidator/>
@@ -34,6 +31,16 @@
         <h3 class="p-3">Регистрация</h3>
         <div class="row">
             <div class="col border rounded-3 m-3 p-3">
+                <div class="form-floating mb-3">
+                    
+                    <InputFile class="custom-file-input" OnChange="OnChange" accept="image/png, image/jpeg, image/gif" id="inputFile" />
+                    
+                    <!--
+                    <img src="data:@filesBase64.contentType;base64,@filesBase64.base64data" style="width: 300px; height: 300px; max-width: 400px; max-height: 400px" id="image" />
+		-->
+                      <img @bind="image" style="width: 300px; height: 300px; max-width: 400px; max-height: 400px" id="image" />
+                    	
+                </div>
                 <div class="form-floating mb-3">
                     <InputText @bind-Value="Input.LastName" class="form-control" placeholder=""/>
                     <label for="lastName">Фамилия</label>
@@ -106,8 +113,147 @@
     </div>
 </EditForm>
 
+<input type="file" name="fileInput" class="form-control" id="fileInput" accept="image/*">
+<img id="image1" style=" height: 600px; width: 600px;">
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+
+<button id="dd">ccc</button>
+<input type="button" @onclick="() => { sss=img; }"/>
+@sss
+<input type="button" @onclick="() => { D(); }"/>
+<script type="module">
+let c = new Croppie(document.getElementById('image1'), {
+    viewport: {
+        width: 250,
+                                height: 250
+                            },
+                            boundary: {
+                                width: 300,
+                                height: 300
+                            },
+                            showZoomer: false,
+                            enableOrientation: true
+                        });
+                        // call a method
+            
+                        document.getElementById('fileInput').addEventListener('change', function () {
+                            if (this.files && this.files[0]) {
+                                var reader = new FileReader();
+                                reader.onload = function (e) {
+                                    c.bind({url: e.target.result});
+            
+                                };
+                                reader.readAsDataURL(this.files[0]);
+                            }
+                        });
+            
+                        window.addEventListener('load', function () { // Fetch all the forms we want to apply custom Bootstrap validation styles to
+                            var forms = document.getElementsByClassName('needs-validation');
+                            // Loop over them and prevent submission
+                            var validation = Array.prototype.filter.call(forms, function (form) {
+                                form.addEventListener('submit', function (event) {
+                                    if (form.checkValidity() === false) {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                    }
+                                    form.classList.add('was-validated');
+                                }, false);
+                            });
+                        }, false);
+
+                        
+document.getElementById("dd").addEventListener('click', function ()
+                                 {
+                                     c.result('blob').then(function(blob) {
+                                         var reader = new window.FileReader();
+                                         reader.readAsDataURL(blob);
+                                         reader.onloadend = function () {
+                                             var base64data = reader.result;
+                                              console.log(JSON.stringify(base64data));
+                                            setImage(JSON.stringify(base64data));
+                                         }
+                                     });
+                                    
+                                 });
+
+window.setImage = (s) => {
+DotNet.invokeMethodAsync('BlazorApp6','SetImage',s);
+};
+
+</script>
+
+
+    
 @code {
+    public string sss;
+    public static string img;
+
+    [JSInvokable]
+    public static void SetImage(string image) {
+        img = image;
+    }
+    
+
+
+
+    public async void D() {
+        img = img.Split(',')[1];
+       
+       var bytes = Convert.FromBase64String(img);
+       
+       string uploadPath = Path.Combine(_appEnvironment.WebRootPath, "upload", "image.png");
+       using (var imageFile = new FileStream(uploadPath, FileMode.Create))
+       {
+           imageFile.Write(bytes ,0, bytes.Length);
+           imageFile.Flush();
+       }
+       
+       var r =  new BlobWriter();
+       
+    }
+    
+    // ImageFile.cs
+    public class ImageFile
+    {
+        public string base64data { get; set; }
+        public string contentType { get; set; }
+        public string fileName { get; set; }
+    }
+
+    ImageFile filesBase64 = new ImageFile();
+    string message = "InputFile";
+    bool isDisabled = false;
+
+    InputFile image;
+    
+    async Task OnChange(InputFileChangeEventArgs e) { 
+        var r = image;
+        var file = e.GetMultipleFiles()[0]; // get the files selected by the users
+
+        if (file.Size > 2 * 1024 * 1024) {
+            Logger.LogError("DDDDD");
+            return;
+        }
+            
+        var buf = new byte[file.Size]; // allocate a buffer to fill with the file's data
+        using (var stream = new StreamContent(file.OpenReadStream(2 * 1024 * 1024))) {
+            
+            buf = await stream.ReadAsByteArrayAsync();
+        }
+            
+        filesBase64 = new ImageFile { base64data = Convert.ToBase64String(buf), contentType = file.ContentType, fileName = file.Name }; // convert to a base64 string!!
+        
+        message = "Click UPLOAD to continue";
+    }
+
+   
+    
+    
+    IFormFile uploadedFile;
+    
     private IEnumerable<IdentityError>? identityErrors;
 
     [SupplyParameterFromForm] private InputModel Input { get; set; } = new();
@@ -116,23 +262,26 @@
 
     private async Task OnInputFileChange(InputFileChangeEventArgs obj) {
         string[] list = obj.File.Name.Split(".");
-        List<string> formats = new List<string>() { "jpg", "jpeg", "png" };
+        List<string> formats = new List<string>(){"jpg", "jpeg", "png" };
         if (formats.IndexOf(list[list.Length - 1]) != -1) {
+           
             var uploadedFile = obj.File;
             string uploadPath = Path.Combine(_appEnvironment.WebRootPath, "upload");
             Directory.CreateDirectory(uploadPath);
             string uploadFile = Path.Combine(uploadPath, uploadedFile.Name);
             await using FileStream fs = new(uploadFile, FileMode.Create);
-
-            await obj.File.OpenReadStream(maxAllowedSize: 16 * 512000L).CopyToAsync(fs);
+            
+            await obj.File.OpenReadStream(maxAllowedSize:16*512000L).CopyToAsync(fs);
             InvokeAsync(StateHasChanged);
         }
     }
-
-
+   
+    
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
 
     public async Task RegisterUser(EditContext editContext) {
+       
+        
         var user = CreateUser();
         await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
         var emailStore = GetEmailStore();
@@ -153,18 +302,15 @@
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
             new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
 
-
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-        ApplicationDbContext.User.Add(Input);
-        ApplicationDbContext.SaveChanges();
-        
         if (UserManager.Options.SignIn.RequireConfirmedAccount) {
             RedirectManager.RedirectTo(
                 "Account/RegisterConfirmation",
                 new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
         }
-        
+
+        await SignInManager.SignInAsync(user, isPersistent: false);
         RedirectManager.RedirectTo(ReturnUrl);
     }
 
@@ -186,7 +332,51 @@
         return (IUserEmailStore<ApplicationUser>)UserStore;
     }
 
-    private sealed class InputModel: User {
+    private sealed class InputModel {
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [Display(Name = "Name")]
+        public string Name { get; set; } = "";
+        
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [Display(Name = "LastName")]
+        public string LastName { get; set; } = "";
+        
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [Display(Name = "MiddleName")]
+        public string MiddleName { get; set; } = "";
+        
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [Display(Name = "Telephone")]
+        public string Telephone { get; set; } = "";
+        
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [Display(Name = "City")]
+        public string City { get; set; } = "";
+        
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [Display(Name = "School")]
+        public string School { get; set; } = "";
+        
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [Display(Name = "Class")]
+        public int Class { get; set; }
+
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [Display(Name = "DateBirth")]
+        [RAgeValidator()]
+        public DateOnly DateBirth { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+        
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [EmailAddress(ErrorMessage = "Почта не является действительной.")]
+        [Display(Name = "Email")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [StringLength(100, ErrorMessage = "Длина {0} должна быть не менее {2} и не более {1} символов.", MinimumLength = 8)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; } = "";
+
         [Required(ErrorMessage = "Поле является обязательным.")]
         [DataType(DataType.Password)]
         [Display(Name = "Confirm password")]
