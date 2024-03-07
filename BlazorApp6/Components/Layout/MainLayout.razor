@@ -1,6 +1,12 @@
 ﻿@inherits LayoutComponentBase
 
 @using Microsoft.AspNetCore.Components.Authorization;
+@using Microsoft.AspNetCore.Identity
+@using BlazorApp6.Data
+@using BlazorApp6.Components.Test
+
+@inject TestsHelperService te
+@inject IHttpContextAccessor _httpContextAccessor
 
 <div class="page">
     <div class="sidebar">
@@ -75,9 +81,8 @@
             </div>
         </header>
 
-        <article class="content px-4">
+        <article class="content px-4" style="display:flex; justify-content:center">
             @Body
-
         </article>
     </main>
 </div>

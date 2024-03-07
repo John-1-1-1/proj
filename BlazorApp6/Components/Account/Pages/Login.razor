@@ -2,7 +2,9 @@
 @layout MainAuthorizeLayout
 
 @using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
 @using BlazorApp6.Components.Layout
+@using BlazorApp6.Components.Tables
 @using BlazorApp6.Data
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
@@ -10,7 +12,9 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
+@inject ApplicationDbContext ApplicationDbContext
 
 <PageTitle>Вход</PageTitle>
 
@@ -74,11 +78,15 @@
     }
 
     public async Task LoginUser() {
-        // This doesn't count login failures towards account lockout
-        // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+       
+        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password,
+            Input.RememberMe, lockoutOnFailure: false);
+        
         if (result.Succeeded) {
             Logger.LogInformation("User logged in.");
+
+            //await UserManager.AddClaimAsync(UserManager.FindByEmailAsync(Input.Email).Result, new Claim("Cat", "male"));
+
             RedirectManager.RedirectTo(ReturnUrl);
         }
       

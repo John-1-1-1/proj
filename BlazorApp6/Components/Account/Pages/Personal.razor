@@ -1,0 +1,92 @@
+@page "/Account/Personal"
+
+@using BlazorApp6.Components.Tables
+@using System.ComponentModel.DataAnnotations
+@using BlazorApp6.Data
+
+@inject ApplicationDbContext ApplicationDbContext 
+@inject IHttpContextAccessor _httpContextAccessor
+
+
+@rendermode InteractiveServer
+
+<EditForm Model="Input"  FormName="update" OnValidSubmit="RegisterUser" class="border rounded-3" style="max-width:800px;">
+    <DataAnnotationsValidator/>
+    <div class="row">
+        <div class="col border rounded-3 m-3 p-3">
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.LastName" class="form-control" placeholder=""/>
+                <label for="lastName">Фамилия</label>
+                <ValidationMessage For="() => Input.LastName" class="text-danger"/>
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Name" class="form-control" placeholder=""/>
+                <label for="name">Имя</label>
+                <ValidationMessage For="() => Input.Name" class="text-danger"/>
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.MiddleName" autocomplete="middleName" class="form-control" placeholder=""/>
+                <label for="middleName">Отчество</label>
+                <ValidationMessage For="() => Input.MiddleName" class="text-danger"/>
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Telephone" autocomplete="telephone" class="form-control" placeholder=""/>
+                <label for="telephone">Телефон</label>
+                <ValidationMessage For="() => Input.Telephone" class="text-danger"/>
+            </div>
+            <div class="mb-3">
+                <label for="date" class="form-label">Дата рождения</label>
+                <InputDate @bind-Value="Input.DateBirth" class="form-control"/>
+                <ValidationMessage For="() => Input.DateBirth" class="text-danger"/>
+            </div>
+        </div>
+        <div class="col border rounded-3 m-3 p-3">
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.City" class="form-control" id="city"/>
+                <label for="city">Город</label>
+                <ValidationMessage For="() => Input.City" class="text-danger"/>
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.School" class="form-control" id="school"/>
+                <label for="school">Школа</label>
+                <ValidationMessage For="() => Input.School" class="text-danger"/>
+            </div>
+            <div class="form-floating mb-3">
+                <InputSelect @bind-Value="Input.Class" class="form-control" id="сlass">
+                    @for (int cl = 1; cl <= 11; cl++) {
+                        <option value="@cl">@cl</option>
+                    }
+                </InputSelect>
+                <label for="сlass">Класс</label>
+                <ValidationMessage For="() => Input.Class" class="text-danger"/>
+            </div>
+        </div>
+    </div>
+    
+    <button type="submit" class="w-50 btn btn-lg btn-primary">Регистрация</button>
+
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm] private User Input { get; set; } = new();
+
+    protected override async Task OnInitializedAsync() {
+        Input = ApplicationDbContext.User.First(u => 
+            u.Email == _httpContextAccessor.HttpContext.User.Identity.Name);
+    }
+
+
+    public async Task RegisterUser(EditContext editContext) {
+        ApplicationDbContext.Update(Input);
+        ApplicationDbContext.SaveChanges();
+    }
+
+    private sealed class InputModel: User {
+        [Required(ErrorMessage = "Поле является обязательным.")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "Пароли не совпадают.")]
+        public string ConfirmPassword { get; set; } = "";
+    }
+}

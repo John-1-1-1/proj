@@ -1,5 +1,7 @@
 using BlazorApp6.Components;
 using BlazorApp6.Components.Account;
+using BlazorApp6.Components.Tables;
+using BlazorApp6.Components.Test;
 using BlazorApp6.Data;
 using BlazorApp7.Components.Account;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -12,10 +14,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider, 
+    IdentityRevalidatingAuthenticationStateProvider>();
+
+builder.Configuration.AddJsonFile("listTest.json");
+builder.Services.AddSingleton(new TestsHelperService(builder.Configuration));
+
 
 builder.Services.AddAuthentication(options => {
         options.DefaultScheme = IdentityConstants.ApplicationScheme;
