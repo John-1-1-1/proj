@@ -2,6 +2,7 @@
 
 @using BlazorApp6.Components.Tables
 @using System.ComponentModel.DataAnnotations
+@using BlazorApp6.Components.Modal
 @using BlazorApp6.Data
 
 @inject ApplicationDbContext ApplicationDbContext 
@@ -10,9 +11,78 @@
 
 @rendermode InteractiveServer
 
+
+<Modal @ref="modalRef">
+    <Title>
+        Добавиль изображение
+    </Title>
+    <Body>
+    <img id="image1" style=" height: 600px; width: 600px;">
+    <input type="file" name="fileInput" class="form-control" id="fileInput" accept="image/*">
+
+    <form method="post" action="/Account/uploadImage" id="val_form" asp-controller="Image" asp-action="Save">
+        <input type="hidden" name="imgCropped" id="imgCropped" />
+        <input type="submit" id="btnUpload" value="Upload"/>
+        </form>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+    <script type="module">
+        let c = new Croppie(document.getElementById('image1'), {
+            viewport: {
+                width: 250,
+                height: 250
+                },
+                boundary: {
+                width: 300,
+                height: 300
+                },
+                showZoomer: false,
+                enableOrientation: true
+        });
+        
+        document.getElementById('fileInput').addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    c.bind({url: e.target.result});    
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+                        
+
+        
+document.getElementById('val_form').addEventListener("submit", function (event) {
+            c.result('blob').then(function(blob) {
+                var reader = new window.FileReader();
+                reader.readAsDataURL(blob);
+              
+                    document.getElementById("imgCropped").value = reader.result;
+                    var base64data = reader.result;
+                    console.log(JSON.stringify(base64data));
+                
+            });                                         
+        });
+        </script>
+
+    
+    <button type="button" @onclick="() => modalRef.Close()" class="btn btn-danger">Закрыть</button>
+    
+    </Body>
+</Modal>
+
 <EditForm Model="Input"  FormName="update" OnValidSubmit="RegisterUser" class="border rounded-3" style="max-width:800px;">
     <DataAnnotationsValidator/>
     <div class="row">
+        <div class="col border rounded-3 m-3 p-3">
+            <img  style="width: 300px; height: 300px"/>
+            <div class="d-flex align-content-end flex-wrap justify-content-center p-3">
+                <input type="button" @onclick="() => modalRef.Open()" class="w-50 btn btn-lg btn-primary">Сохранить</input>
+            </div>
+        </div>
         <div class="col border rounded-3 m-3 p-3">
             <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.LastName" class="form-control" placeholder=""/>
@@ -36,8 +106,8 @@
                 <ValidationMessage For="() => Input.Telephone" class="text-danger"/>
             </div>
             <div class="mb-3">
+                <InputDate @bind-Value="Input.DateBirth" autocomplete="date" class="form-control"/>
                 <label for="date" class="form-label">Дата рождения</label>
-                <InputDate @bind-Value="Input.DateBirth" class="form-control"/>
                 <ValidationMessage For="() => Input.DateBirth" class="text-danger"/>
             </div>
         </div>
@@ -63,14 +133,16 @@
             </div>
         </div>
     </div>
-    
-    <button type="submit" class="w-50 btn btn-lg btn-primary">Регистрация</button>
-
+    <div class="d-flex align-content-end flex-wrap justify-content-center p-3">
+        <button type="submit" class="w-50 btn btn-lg btn-primary">Сохранить</button>
+    </div>
 </EditForm>
 
 @code {
     [SupplyParameterFromForm] private User Input { get; set; } = new();
 
+    private Modal modalRef = new Modal();
+    
     protected override async Task OnInitializedAsync() {
         Input = ApplicationDbContext.User.First(u => 
             u.Email == _httpContextAccessor.HttpContext.User.Identity.Name);

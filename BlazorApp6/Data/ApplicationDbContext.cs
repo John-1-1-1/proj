@@ -9,6 +9,8 @@ public class ApplicationDbContext
 
     public DbSet<User> User { get; set; } = null!;
     
+    
+    
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
     {

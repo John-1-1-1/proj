@@ -22,6 +22,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Components\Olympiad\Cards\" />
+      <Folder Include="Components\Test\" />
       <Folder Include="wwwroot\upload\" />
     </ItemGroup>
 

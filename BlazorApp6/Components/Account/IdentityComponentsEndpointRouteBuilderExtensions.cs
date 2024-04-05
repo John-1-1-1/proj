@@ -26,6 +26,21 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions {
             return TypedResults.LocalRedirect($"~/");
         });
 
+        accountGroup.MapPost("/uploadImage", async (
+            ClaimsPrincipal user,
+            SignInManager<ApplicationUser> signInManager,
+            [FromForm] string imgCropped) => {
+            var base64 = imgCropped.Split(',');
+            byte[] bytes = Convert.FromBase64String(base64[1]);
+            string filePath = Path.Combine(WebApplication.CreateBuilder().Environment.WebRootPath, "upload", "Cropped.png");
+            using (FileStream stream = new FileStream(filePath, FileMode.OpenOrCreate)) {
+                stream.Write(bytes, 0, bytes.Length);
+                stream.Flush();
+            }
+
+            return TypedResults.LocalRedirect("~/");
+        }).DisableAntiforgery();
+        
         return accountGroup;
     }
 }
